@@ -1,0 +1,202 @@
+@model DoAnLTW.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Trang cá nhân";
+    var isAdmin = User.IsInRole("Admin");
+    var loggedInUserId = ViewData["LoggedInUserId"] as string;
+    var currentProfileUserId = ViewData["CurrentUserId"] as string;
+    var profileIsDoctor = (bool)(ViewData["ProfileIsDoctor"] ?? false);
+    var profileIsPatient = (bool)(ViewData["ProfileIsPatient"] ?? false);
+}
+
+<style>
+    .profile-card .form-control[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    /* Ẩn input file ban đầu */
+    #avatarUploadInput {
+        display: none;
+    }
+    /* Style cho label của input file trông giống một cái nút */
+    #avatarUploadLabel {
+        cursor: pointer;
+        background-color: #0d6efd;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-lg p-4 profile-card" style="max-width: 800px; width: 100%;">
+        <form asp-action="Index" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@ViewData["CurrentUserId"]" />
+
+            <div class="text-center mb-4">
+                <img id="avatarPreview" src="@(string.IsNullOrEmpty(Model.ProfilePicture) ? "/uploads/avatars/default-avatar.png" : Model.ProfilePicture)" class="profile-avatar" alt="Avatar">
+                <h3 class="fw-bold mt-3">@Model.FullName</h3>
+                <p class="text-muted mb-2">@Model.Email</p>
+                
+                @if (loggedInUserId == currentProfileUserId)
+                {
+                    <div id="upload-section" class="edit-mode" style="display: none;">
+                        <label for="avatarUploadInput" id="avatarUploadLabel">Chọn ảnh mới</label>
+                        <input type="file" name="avatarFile" id="avatarUploadInput" class="form-control" accept="image/*" />
+                    </div>
+                }
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+
+            @if (Model.LockoutEnd.HasValue && Model.LockoutEnd.Value > DateTimeOffset.Now)
+            {
+                <div class="alert alert-danger text-center">Tài khoản này hiện đang bị khóa cho đến @Model.LockoutEnd.Value.ToString("g").</div>
+            }
+
+            <div class="row g-3">
+                @* Thông tin chung *@
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Họ và tên</label>
+                        <p class="view-mode">@Model.FullName</p>
+                        <input asp-for="FullName" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <p class="view-mode">@Model.PhoneNumber</p>
+                        <input asp-for="PhoneNumber" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Ngày sinh</label>
+                         <p class="view-mode">@Model.DateOfBirth.ToString("dd/MM/yyyy")</p>
+                        <input asp-for="DateOfBirth" type="date" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giới tính</label>
+                        <p class="view-mode">@Model.Gender</p>
+                        <input asp-for="Gender" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                </div>
+
+                @if (profileIsDoctor)
+                {
+                    <hr class="my-3"/>
+                    <h5 class="text-center">Thông tin bác sĩ</h5>
+                     <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Chuyên khoa</label>
+                            <p class="view-mode">@Model.Specialization</p>
+                            @if (isAdmin)
+                            {
+                                <input asp-for="Specialization" class="form-control edit-mode" style="display: none;" />
+                            }
+                            else
+                            {
+                                <input asp-for="Specialization" class="form-control edit-mode" style="display: none;" readonly />
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                         <div class="mb-3">
+                            <label class="form-label">Địa chỉ phòng khám</label>
+                            <p class="view-mode">@Model.Address</p>
+                             <input asp-for="Address" class="form-control edit-mode" style="display: none;" />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả bản thân</label>
+                            <p class="view-mode">@Model.Description</p>
+                            <textarea asp-for="Description" class="form-control edit-mode" style="display: none;" rows="3" readonly></textarea>
+                        </div>
+                    </div>
+                }
+
+                @if (profileIsPatient)
+                {
+                    <hr class="my-3"/>
+                    <h5 class="text-center">Hồ sơ bệnh án</h5>
+                    <div class="col-md-4">
+                        <label class="form-label">Nhóm máu</label>
+                        <p class="view-mode">@Model.BloodType</p>
+                        <input asp-for="BloodType" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Dị ứng</label>
+                        <p class="view-mode">@Model.Allergies</p>
+                        <input asp-for="Allergies" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tiền sử bệnh</label>
+                        <p class="view-mode">@Model.MedicalHistory</p>
+                        <input asp-for="MedicalHistory" class="form-control edit-mode" style="display: none;" />
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex justify-content-center mt-4 gap-3">
+                <button type="button" id="editButton" class="btn btn-primary px-5 py-2 fs-5 shadow">Chỉnh sửa</button>
+                <button type="submit" id="saveButton" class="btn btn-success px-5 py-2 fs-5 shadow" style="display: none;">Lưu thay đổi</button>
+                <button type="button" id="cancelButton" class="btn btn-secondary px-5 py-2 fs-5 shadow" style="display: none;">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            function toggleEditMode(isEdit) {
+                if (isEdit) {
+                    $('.view-mode').hide();
+                    $('.edit-mode').show();
+                    $('#editButton').hide();
+                    $('#saveButton').show();
+                    $('#cancelButton').show();
+                } else {
+                    $('.view-mode').show();
+                    $('.edit-mode').hide();
+                    $('#editButton').show();
+                    $('#saveButton').hide();
+                    $('#cancelButton').hide();
+                }
+            }
+
+            $('#editButton').on('click', function() {
+                toggleEditMode(true);
+            });
+
+            $('#cancelButton').on('click', function() {
+                toggleEditMode(false);
+                // Optional: reset form to original values if needed
+                $('form')[0].reset(); 
+                $('#avatarPreview').attr('src', '@(string.IsNullOrEmpty(Model.ProfilePicture) ? "/uploads/avatars/default-avatar.png" : Model.ProfilePicture)');
+            });
+
+             // Preview avatar image before uploading
+            $('#avatarUploadInput').on('change', function(event) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#avatarPreview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(event.target.files[0]);
+            });
+        });
+    </script>
+} 

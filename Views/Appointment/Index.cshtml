@@ -1,0 +1,72 @@
+@model IEnumerable<DoAnLTW.Models.Appointment>
+
+@{
+    ViewData["Title"] = "Danh sách lịch hẹn";
+}
+
+<div class="container mt-4">
+    <h2>Danh sách lịch hẹn</h2>
+
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-outline-dark">Đặt lịch mới</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Bác sĩ</th>
+                    <th>Ngày giờ</th>
+                    <th>Lý do</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@(item.Doctor?.FullName ?? "Chưa phân bác sĩ")</td>
+                        <td>@item.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@item.Reason</td>
+                        <td>
+                            @switch (item.Status)
+                            {
+                                case AppointmentStatus.Pending:
+                                    <span class="badge bg-warning">Chờ xác nhận</span>
+                                    break;
+                                case AppointmentStatus.Confirmed:
+                                    <span class="badge bg-success">Đã xác nhận</span>
+                                    break;
+                                case AppointmentStatus.Cancelled:
+                                    <span class="badge bg-danger">Đã hủy</span>
+                                    break;
+                                case AppointmentStatus.Completed:
+                                    <span class="badge bg-info">Đã hoàn thành</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            @if (item.Status == AppointmentStatus.Pending)
+                            {
+                                <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc muốn hủy lịch hẹn này?')">
+                                        Hủy
+                                    </button>
+                                </form>
+                            }
+                            @if ((item.Status == AppointmentStatus.Confirmed || item.Status == AppointmentStatus.Completed) && User.IsInRole("Doctor") && string.IsNullOrEmpty(item.Prescription))
+                            {
+                                <a asp-action="Prescribe" asp-route-id="@item.Id" class="btn btn-outline-dark btn-sm ms-1">Kê toa</a>
+                            }
+                            @if ((item.Status == AppointmentStatus.Confirmed || item.Status == AppointmentStatus.Completed) && !string.IsNullOrEmpty(item.Prescription))
+                            {
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm ms-1">Xem toa thuốc</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div> 

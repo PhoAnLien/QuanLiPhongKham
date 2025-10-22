@@ -1,0 +1,403 @@
+@model DoAnLTW.ViewModels.AdminDashboardViewModel
+@using Microsoft.AspNetCore.Identity
+@using DoAnLTW.Helpers
+@{
+    ViewData["Title"] = "Bảng điều khiển của Quản trị viên";
+    var daysOfWeek = Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>().OrderBy(d => (int)d).ToList();
+    var dayTranslations = new Dictionary<DayOfWeek, string>
+    {
+        { DayOfWeek.Sunday, "CN" }, { DayOfWeek.Monday, "T2" }, { DayOfWeek.Tuesday, "T3" },
+        { DayOfWeek.Wednesday, "T4" }, { DayOfWeek.Thursday, "T5" }, { DayOfWeek.Friday, "T6" },
+        { DayOfWeek.Saturday, "T7" }
+    };
+}
+
+<style>
+    .table-responsive {
+        max-height: 350px;
+    }
+    .card-header-custom {
+        background-color: #e9ecef;
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6"><i class="bi bi-speedometer2 me-3"></i>@ViewData["Title"]</h1>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <!-- Bảng tổng quan lịch làm việc -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header card-header-custom">
+            <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Tổng quan Lịch làm việc</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" style="max-height: 500px;">
+                <table class="table table-bordered table-hover text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start">Bác sĩ</th>
+                            @foreach (var day in daysOfWeek)
+                            {
+                                <th>@dayTranslations[day]</th>
+                            }
+                            <th class="text-start">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doctor in Model.Doctors)
+                        {
+                            var schedules = Model.SchedulesByDoctor[doctor.Id];
+                            <tr>
+                                <td class="text-start">@doctor.FullName</td>
+                                @foreach (var day in daysOfWeek)
+                                {
+                                    var scheduleForDay = schedules.FirstOrDefault(s => s.DayOfWeek == day);
+                                    var shift = scheduleForDay != null && scheduleForDay.IsWorking ? scheduleForDay.Shift : DoAnLTW.Models.ShiftType.None;
+                                    <td><small>@shift.GetDisplayName()</small></td>
+                                }
+                                <td class="text-start">
+                                    <a asp-controller="Schedule" asp-action="ManageWeeklySchedule" asp-route-id="@doctor.Id" class="btn btn-primary btn-sm" title="Quản lý lịch tuần"><i class="bi bi-pencil-square"></i></a>
+                                    <a asp-controller="Schedule" asp-action="ManageLeave" asp-route-id="@doctor.Id" class="btn btn-warning btn-sm" title="Quản lý ngày nghỉ"><i class="bi bi-calendar-x"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lịch hẹn trực quan -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header card-header-custom">
+            <h5 class="mb-0"><i class="bi bi-calendar-week me-2"></i>Lịch hẹn tổng quan</h5>
+        </div>
+        <div class="card-body">
+            <div id="appointmentCalendar"></div>
+        </div>
+    </div>
+
+    <hr class="my-4"/>
+
+    <div class="row g-4">
+        <!-- Pending Appointments -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                 <div class="card-header card-header-custom">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Lịch hẹn Chờ duyệt</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bệnh nhân</th>
+                                    <th>Ngày giờ</th>
+                                    <th style="width: 200px;">Phân công</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if(Model.PendingAppointments.Any())
+                                {
+                                    @foreach (var app in Model.PendingAppointments)
+                                    {
+                                        var appointmentDay = app.AppointmentDate.DayOfWeek;
+                                        
+                                        // Lọc bác sĩ có lịch làm việc và không nghỉ phép vào ngày hẹn
+                                        var availableDoctors = Model.Doctors.Where(d => {
+                                            var isOnLeave = Model.Leaves.Any(l => l.DoctorId == d.Id && l.LeaveDate.Date == app.AppointmentDate.Date);
+                                            var hasSchedule = Model.WeeklySchedules.Any(s => s.DoctorId == d.Id && s.DayOfWeek == appointmentDay && s.IsWorking);
+                                            return !isOnLeave && hasSchedule;
+                                        }).ToList();
+
+                                        <tr>
+                                            <td>@app.Patient?.FullName</td>
+                                            <td>@app.AppointmentDate.ToString("HH:mm dd/MM")</td>
+                                            <td>
+                                                <form asp-action="AssignDoctor" method="post" class="d-flex">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="appointmentId" value="@app.Id" />
+                                                    <select name="doctorId" class="form-select form-select-sm" required>
+                                                        <option value="">-- Bác sĩ rảnh --</option>
+                                                        @foreach (var doctor in availableDoctors)
+                                                        {
+                                                            <option value="@doctor.Id">@doctor.FullName</option>
+                                                        }
+                                                    </select>
+                                                    <button type="submit" class="btn btn-success btn-sm ms-2" @(availableDoctors.Any() ? "" : "disabled")><i class="bi bi-check-circle"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                } else {
+                                    <tr><td colspan="3" class="text-center text-muted">Không có lịch hẹn chờ.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Management -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                 <div class="card-header card-header-custom">
+                    <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Quản lý Bác sĩ</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                             <thead class="table-light">
+                                <tr>
+                                    <th>Họ tên</th>
+                                    <th>Chuyên khoa</th>
+                                    <th class="text-center">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doctor in Model.Doctors)
+                                {
+                                    <tr>
+                                        <td>@doctor.FullName</td>
+                                        <td>@doctor.Specialization</td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editDoctorModal"
+                                                    data-bs-id="@doctor.Id"
+                                                    data-bs-name="@doctor.FullName"
+                                                    data-bs-spec="@doctor.Specialization"
+                                                    data-bs-phone="@doctor.PhoneNumber"
+                                                    title="Sửa thông tin bác sĩ">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Patient Lookup Card -->
+        <div class="col-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h5 class="card-title"><i class="bi bi-search me-2"></i>Tra cứu Lịch sử Bệnh nhân</h5>
+                    <p class="card-text text-muted">Tìm kiếm bệnh nhân và xem lại toàn bộ lịch sử các cuộc hẹn trước đây.</p>
+                    <a asp-action="PatientLookup" class="btn btn-primary mt-auto">Đi đến trang tra cứu</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                 <div class="card-header card-header-custom">
+                    <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Quản lý Người dùng</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Form -->
+                    <form asp-action="Dashboard" method="get" class="row g-3 align-items-center mb-3">
+                        <div class="col-md-5">
+                             <input type="text" name="searchString" class="form-control form-control-sm" placeholder="Tìm theo tên hoặc email..." value="@ViewData["CurrentSearch"]">
+                        </div>
+                         <div class="col-md-4">
+                            <select name="roleFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                                 <option value="">Tất cả vai trò</option>
+                                @foreach (var role in (List<IdentityRole>)ViewBag.Roles)
+                                {
+                                    if(role.Name != "Admin"){
+                                        <option value="@role.Name" selected="@(role.Name.Equals(ViewData["CurrentRole"] as string))">@role.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i> Lọc</button>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Người dùng</th>
+                                    <th>Số điện thoại</th>
+                                    <th style="width: 170px;">Vai trò</th>
+                                    <th class="text-center" style="width: 200px;">Trạng thái & Hành động</th>
+                                </tr>
+                            </thead>
+                             <tbody>
+                                @foreach (var user in Model.AllUsers.Where(u=>u.Role != "Admin").OrderBy(u => u.FullName))
+                                {
+                                    <tr>
+                                        <td>
+                                            @user.FullName
+                                            <small class="d-block text-muted">@user.Email</small>
+                                        </td>
+                                        <td>
+                                            @user.PhoneNumber
+                                        </td>
+                                        <td>
+                                             <form asp-action="UpdateUserRole" method="post" class="d-inline-block w-100">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="userId" value="@user.Id" />
+                                                <div class="input-group input-group-sm">
+                                                    <select name="role" class="form-select" onchange="this.form.submit()">
+                                                        @foreach (var role in (List<IdentityRole>)ViewBag.Roles)
+                                                        {
+                                                            if(role.Name != "Admin"){
+                                                                <option value="@role.Name" selected="@(user.Role == role.Name)">@role.Name</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </form>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (!user.IsApproved)
+                                            {
+                                                <span class="badge bg-warning text-dark me-2">Chờ duyệt</span>
+                                                <form asp-action="ApproveUser" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Duyệt"><i class="bi bi-check-lg"></i></button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="BanUser" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    @if(user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.Now)
+                                                    {
+                                                        <span class="badge bg-danger me-2">Bị khóa</span>
+                                                        <button type="submit" class="btn btn-sm btn-warning" title="Mở khóa"><i class="bi bi-unlock-fill"></i></button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-success me-2">Hoạt động</span>
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Khóa"><i class="bi bi-lock-fill"></i></button>
+                                                    }
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Doctor Modal -->
+<div class="modal fade" id="editDoctorModal" tabindex="-1" aria-labelledby="editDoctorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateDoctorInfo" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editDoctorId" name="id" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDoctorModalLabel">Chỉnh sửa Thông tin Bác sĩ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editDoctorName" class="form-label">Họ và tên</label>
+                        <input type="text" class="form-control" id="editDoctorName" name="fullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDoctorSpec" class="form-label">Chuyên khoa</label>
+                        <input type="text" class="form-control" id="editDoctorSpec" name="specialization" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDoctorPhone" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="editDoctorPhone" name="phoneNumber" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- FullCalendar v6 CDN -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Appointment Calendar
+            var appointmentCalendarEl = document.getElementById('appointmentCalendar');
+            if (appointmentCalendarEl) {
+                var calendar = new FullCalendar.Calendar(appointmentCalendarEl, {
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,listWeek'
+                    },
+                    initialView: 'timeGridWeek',
+                    locale: 'vi',
+                    height: 650, // Giảm chiều cao của lịch
+                    allDaySlot: false,
+                    slotMinTime: '07:00:00',
+                    slotMaxTime: '19:00:00',
+                    events: '/Admin/GetAllAppointmentsJson', // Đổi nguồn dữ liệu
+                    eventClick: function(info) { // Thêm sự kiện click
+                        info.jsEvent.preventDefault(); 
+                        if (info.event.url) {
+                            window.open(info.event.url, "_blank");
+                        }
+                    }
+                });
+                calendar.render();
+            }
+
+            // Initialize Edit Doctor Modal
+            var editDoctorModal = document.getElementById('editDoctorModal');
+            if (editDoctorModal) {
+                editDoctorModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    
+                    var doctorId = button.getAttribute('data-bs-id');
+                    var doctorName = button.getAttribute('data-bs-name');
+                    var doctorSpec = button.getAttribute('data-bs-spec');
+                    var doctorPhone = button.getAttribute('data-bs-phone');
+
+                    var modalTitle = editDoctorModal.querySelector('.modal-title');
+                    var doctorIdInput = editDoctorModal.querySelector('#editDoctorId');
+                    var doctorNameInput = editDoctorModal.querySelector('#editDoctorName');
+                    var doctorSpecInput = editDoctorModal.querySelector('#editDoctorSpec');
+                    var doctorPhoneInput = editDoctorModal.querySelector('#editDoctorPhone');
+
+                    modalTitle.textContent = 'Chỉnh sửa: ' + doctorName;
+                    doctorIdInput.value = doctorId;
+                    doctorNameInput.value = doctorName;
+                    doctorSpecInput.value = doctorSpec;
+                    doctorPhoneInput.value = doctorPhone;
+                });
+            }
+        });
+    </script>
+} 

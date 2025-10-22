@@ -1,0 +1,174 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<DoAnLTW.Models.ApplicationUser> SignInManager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hệ thống Đặt lịch khám bệnh</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-heart-pulse-fill me-2" style="font-size:1.7rem;color:#ffe082;"></i>
+                    Hệ thống Đặt lịch khám bệnh
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            @if (User.IsInRole("Patient"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Appointment" asp-action="Index">Lịch hẹn của tôi</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Appointment" asp-action="Create">Đặt lịch khám</a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <!-- Removed link -->
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Index">Trang cá nhân</a>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <partial name="_LoginPartial" />
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer border-top">
+        <div class="container">
+            &copy; 2024 - Hệ thống Đặt lịch khám bệnh | Liên hệ: support@example.com | Hotline: 0123 456 789
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <h5>Chat tư vấn</h5>
+            <button onclick="toggleChat()">X</button>
+        </div>
+        <div class="chat-body" id="chatMessages"></div>
+        <div class="chat-footer">
+            <textarea id="chatInput" placeholder="Nhập tin nhắn..."></textarea>
+            <button onclick="sendMessage()">Gửi</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const widget = document.getElementById('chatWidget');
+            widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value;
+            if (message) {
+                $.post('/api/message/send', { content: message }, function () {
+                    $('#chatBody').append('<div class="user-message">' + message + '</div>');
+                    input.value = '';
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            // Filter function
+            // ... existing code ...
+
+            // Attach filter events
+            $('#patientNameFilter, #dateFilter, #statusFilter').on('input change', filterAppointments);
+
+            // Edit Doctor Modal
+            $('.btn[data-bs-target="#editDoctorModal"]').on('click', function() {
+                // ... existing code ...
+            });
+
+            // DEBUG: Log clicks on Register and Login links
+            $('a[asp-area="Identity"][asp-page="/Account/Register"]').on('click', function(e) {
+                console.log('Register link clicked!');
+                // You might want to remove e.preventDefault() later if it fixes the issue and you want the navigation to proceed normally.
+                // e.preventDefault(); 
+            });
+
+            $('a[asp-area="Identity"][asp-page="/Account/Login"]').on('click', function(e) {
+                console.log('Login link clicked!');
+                // e.preventDefault(); 
+            });
+        });
+    </script>
+</body>
+</html>
+
+<style>
+    .chat-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        height: 400px;
+        background: white;
+        border: 1px solid #007bff;
+        border-radius: 8px;
+        display: none;
+    }
+
+    .chat-header {
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-body {
+        height: 300px;
+        overflow-y: scroll;
+        padding: 10px;
+        background: #f9f0f9;
+    }
+
+    .chat-footer {
+        padding: 10px;
+        display: flex;
+        background: white;
+    }
+
+    #chatInput {
+        flex-grow: 1;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+    }
+</style>

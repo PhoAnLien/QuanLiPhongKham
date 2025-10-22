@@ -1,0 +1,66 @@
+@model DoAnLTW.Models.Appointment
+@{
+    ViewData["Title"] = "Chi tiết toa thuốc";
+}
+
+<style>
+    .details-header {
+        border-bottom: 2px solid #0d6efd;
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+    }
+
+    .card-header-custom {
+        background-color: #e7f1ff;
+        font-weight: 500;
+    }
+
+</style>
+
+<div class="container mt-4 py-4" style="max-width: 800px;">
+    <div class="details-header">
+        <h2 class="display-6"><i class="bi bi-file-earmark-medical text-primary"></i> Chi tiết Lịch hẹn & Toa thuốc</h2>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header card-header-custom">
+            <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Thông tin Lịch hẹn</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4"><i class="bi bi-person me-2"></i>Bác sĩ</dt>
+                <dd class="col-sm-8">@(Model.Doctor?.FullName ?? "Chưa chỉ định")</dd>
+
+                <dt class="col-sm-4"><i class="bi bi-clock me-2"></i>Ngày giờ khám</dt>
+                <dd class="col-sm-8">@Model.AppointmentDate.ToString("HH:mm, dd/MM/yyyy")</dd>
+
+                <dt class="col-sm-4"><i class="bi bi-card-text me-2"></i>Lý do khám</dt>
+                <dd class="col-sm-8">@Model.Reason</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header card-header-custom">
+            <h5 class="mb-0"><i class="bi bi-journal-medical me-2"></i>Toa thuốc & Ghi chú của Bác sĩ</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4"><i class="bi bi-clipboard-pulse me-2"></i>Chẩn đoán (Bệnh)</dt>
+                <dd class="col-sm-8">@(Model.Diagnosis ?? "Chưa có chẩn đoán")</dd>
+
+                <dt class="col-sm-4"><i class="bi bi-prescription2 me-2"></i>Toa thuốc</dt>
+                <dd class="col-sm-8">@(Model.Prescription ?? "Chưa có toa thuốc")</dd>
+
+                <dt class="col-sm-4"><i class="bi bi-chat-left-dots me-2"></i>Lời dặn của bác sĩ</dt>
+                <dd class="col-sm-8">@(Model.DoctorNote ?? "Không có lời dặn")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-arrow-left-circle me-2"></i>Về Trang chủ
+        </a>
+    </div>
+</div>

@@ -1,0 +1,171 @@
+﻿@model IEnumerable<DoAnLTW.Models.ApplicationUser>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<style>
+    .hero-section {
+        background: linear-gradient(to right, #6a82fb, #fc5c7d);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+    }
+
+    .hero-section h1 {
+        font-weight: 700;
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: #0d6efd;
+    }
+
+    .step-icon {
+        width: 60px;
+        height: 60px;
+        background-color: #e7f1ff;
+        color: #0d6efd;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .testimonial-card {
+        background-color: #f8f9fa;
+    }
+
+    .doctor-card {
+        border: none;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .doctor-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+    }
+
+    .doctor-avatar {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        margin-top: -60px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+</style>
+
+@if (User.IsInRole("Admin"))
+{
+    <meta http-equiv="refresh" content="0;url=@Url.Action("Dashboard", "Admin")" />
+}
+else if (User.IsInRole("Doctor"))
+{
+     <meta http-equiv="refresh" content="0;url=@Url.Action("Dashboard", "Doctor")" />
+}
+else
+{
+    <!-- Hero Section -->
+    <div class="hero-section text-center text-white py-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Chăm sóc Sức khỏe trong Tầm tay bạn</h1>
+            <p class="lead col-lg-8 mx-auto">Nền tảng đặt lịch khám bệnh thông minh, giúp bạn kết nối với các bác sĩ chuyên khoa hàng đầu một cách nhanh chóng và tiện lợi.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+                <a asp-controller="Appointment" asp-action="Create" class="btn btn-primary btn-lg px-4 gap-3"><i class="bi bi-calendar-plus me-2"></i>Đặt lịch ngay</a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-info-circle me-2"></i>Tìm hiểu thêm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container px-4 py-5">
+        <h2 class="text-center mb-5 display-6 fw-bold">Tại sao nên chọn chúng tôi?</h2>
+        <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+            <div class="col d-flex align-items-start">
+                <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 me-3 rounded-3 p-3">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div>
+                    <h4>Đặt lịch 24/7</h4>
+                    <p>Chủ động đặt lịch khám mọi lúc, mọi nơi, không cần chờ đợi, giảm thiểu thời gian và công sức.</p>
+                </div>
+            </div>
+            <div class="col d-flex align-items-start">
+                <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 me-3 rounded-3 p-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <h4>Đội ngũ Bác sĩ Chuyên gia</h4>
+                    <p>Kết nối với các bác sĩ có trình độ chuyên môn cao, giàu kinh nghiệm và tận tâm với bệnh nhân.</p>
+                </div>
+            </div>
+            <div class="col d-flex align-items-start">
+                 <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 me-3 rounded-3 p-3">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <h4>Minh bạch & Bảo mật</h4>
+                    <p>Thông tin lịch khám và hồ sơ bệnh án của bạn được quản lý rõ ràng và bảo mật tuyệt đối.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it works Section -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 display-6 fw-bold">Quy trình 3 bước Đơn giản</h2>
+            <div class="row text-center g-4">
+                <div class="col-md-4">
+                    <div class="step-icon mb-3">1</div>
+                    <h5>Đăng ký & Chọn bác sĩ</h5>
+                    <p>Tạo tài khoản, tìm kiếm và lựa chọn bác sĩ phù hợp với nhu cầu của bạn.</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="step-icon mb-3">2</div>
+                    <h5>Đặt lịch hẹn</h5>
+                    <p>Chọn ngày giờ khám thuận tiện và xác nhận lịch hẹn chỉ với vài cú nhấp chuột.</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="step-icon mb-3">3</div>
+                    <h5>Khám và nhận tư vấn</h5>
+                    <p>Đến phòng khám theo lịch và nhận sự chăm sóc tận tình từ các chuyên gia y tế.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctors Section -->
+    <div class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 display-6 fw-bold">Đội ngũ Bác sĩ của chúng tôi</h2>
+            <div class="row g-4">
+                @foreach (var doctor in Model)
+                {
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card shadow-sm text-center doctor-card h-100">
+                             <div class="card-header bg-primary" style="height: 100px;"></div>
+                            <div class="card-body">
+                                <img src="@(string.IsNullOrEmpty(doctor.ProfilePicture) ? "/uploads/avatars/default-avatar.png" : doctor.ProfilePicture)"
+                                     alt="Avatar của @doctor.FullName"
+                                     class="doctor-avatar" />
+                                <h5 class="card-title mt-3">@doctor.FullName</h5>
+                                <p class="card-subtitle mb-2 text-primary fw-bold">@doctor.Specialization</p>
+                                <p class="card-text text-muted small">@doctor.Description</p>
+                            </div>
+                            <div class="card-footer bg-white border-0 pb-3">
+                                <a asp-controller="Profile" asp-action="Index" asp-route-id="@doctor.Id" class="btn btn-outline-primary btn-sm">Xem hồ sơ</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,34 @@
+@model DoAnLTW.Models.Appointment
+@{
+    ViewData["Title"] = "Kê toa thuốc";
+}
+<div class="container mt-4" style="max-width: 700px;">
+    <h2 class="mb-4">Kê toa thuốc cho bệnh nhân</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Thông tin lịch hẹn</h5>
+            <p><strong>Bệnh nhân:</strong> @Model.Patient?.FullName</p>
+            <p><strong>Số điện thoại:</strong> @Model.Patient?.PhoneNumber</p>
+            <p><strong>Ngày giờ khám:</strong> @Model.AppointmentDate.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><strong>Lý do khám:</strong> @Model.Reason</p>
+        </div>
+    </div>
+    <form asp-action="Prescribe" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="mb-3">
+            <label class="form-label">Chẩn đoán (Bệnh)</label>
+            <textarea name="Diagnosis" class="form-control" rows="2" required>@Model.Diagnosis</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Toa thuốc</label>
+            <textarea name="Prescription" class="form-control" rows="3" required>@Model.Prescription</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Lời dặn của bác sĩ</label>
+            <textarea name="DoctorNote" class="form-control" rows="2">@Model.DoctorNote</textarea>
+        </div>
+        <button type="submit" class="btn btn-outline-dark px-4">Lưu toa thuốc</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Quay lại</a>
+    </form>
+</div> 

@@ -1,0 +1,26 @@
+@model DoAnLTW.Models.Appointment
+@{
+    ViewData["Title"] = "Chỉnh sửa lịch hẹn";
+}
+<div class="container mt-4" style="max-width: 700px;">
+    <h2 class="mb-4">Chỉnh sửa ngày giờ lịch hẹn</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Thông tin lịch hẹn</h5>
+            <p><strong>Bệnh nhân:</strong> @Model.Patient?.FullName</p>
+            <p><strong>Bác sĩ:</strong> @Model.Doctor?.FullName</p>
+            <p><strong>Lý do khám:</strong> @Model.Reason</p>
+            <p><strong>Trạng thái:</strong> @Model.Status</p>
+        </div>
+    </div>
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <div class="mb-3">
+            <label class="form-label">Ngày giờ khám mới</label>
+            <input type="datetime-local" name="AppointmentDate" class="form-control" value="@Model.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")" required />
+        </div>
+        <button type="submit" class="btn btn-outline-dark px-4">Lưu thay đổi</button>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary ms-2">Quay lại</a>
+    </form>
+</div> 

@@ -1,0 +1,59 @@
+@model IEnumerable<DoAnLTW.Models.DoctorLeave>
+@{
+    ViewData["Title"] = "Quản lý Ngày nghỉ phép";
+    var doctorName = ViewBag.DoctorName;
+    var doctorId = ViewBag.DoctorId;
+}
+
+<h2>@ViewData["Title"] - Bác sĩ @doctorName</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-5">
+        <h4>Thêm ngày nghỉ mới</h4>
+        <form asp-action="AddLeave" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="doctorId" value="@doctorId" />
+            <div class="mb-3">
+                <label for="leaveDate" class="form-label">Ngày nghỉ</label>
+                <input type="date" id="leaveDate" name="leaveDate" class="form-control" required/>
+            </div>
+            <div class="mb-3">
+                <label for="reason" class="form-label">Lý do (không bắt buộc)</label>
+                <input type="text" id="reason" name="reason" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Thêm</button>
+        </form>
+    </div>
+    <div class="col-md-7">
+        <h4>Danh sách ngày nghỉ đã đăng ký</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ngày nghỉ</th>
+                    <th>Lý do</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var leave in Model)
+                {
+                    <tr>
+                        <td>@leave.LeaveDate.ToString("dd/MM/yyyy")</td>
+                        <td>@leave.Reason</td>
+                        <td>
+                            <form asp-action="DeleteLeave" asp-route-id="@leave.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc muốn xóa ngày nghỉ này?');">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">Quay lại Dashboard</a>
+</div> 

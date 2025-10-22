@@ -1,0 +1,195 @@
+/* General Styles */
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    margin-bottom: 60px;
+    background-color: #f8f9fa;
+}
+
+/* Navbar Styles */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+    transition: transform 0.2s ease-in-out;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+.card-header {
+    border-bottom: none;
+}
+
+/* Form Styles */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+
+/* Table Styles */
+.table {
+    background-color: white;
+    border-radius: 0.25rem;
+}
+
+    .table thead th {
+        border-top: none;
+        font-weight: 600;
+    }
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,123,255,.05);
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+/* Footer Styles */
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+    background-color: white;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Appointment Status Colors */
+.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.bg-success {
+    background-color: #198754 !important;
+}
+
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .table-responsive {
+        margin-bottom: 1rem;
+    }
+
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+        .btn-group .btn {
+            width: 100%;
+        }
+}
+
+/* Profile Card Styles */
+.profile-card {
+    border-radius: 1.5rem;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 2rem 2.5rem;
+}
+.profile-card .rounded-circle {
+    box-shadow: 0 2px 8px rgba(13,110,253,0.15);
+    border: 4px solid #e9ecef;
+    background: #f8f9fa;
+}
+.profile-card h3 {
+    color: #0d6efd;
+    margin-bottom: 0.25rem;
+}
+.profile-card p.text-muted {
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+}
+.profile-card label.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+.profile-card input.form-control {
+    border-radius: 0.5rem;
+    background: #f5f7fa;
+    border: 1px solid #dee2e6;
+}
+.profile-card input.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.15rem rgba(13,110,253,.15);
+}
+.profile-card .btn-primary {
+    font-size: 1.1rem;
+    border-radius: 2rem;
+    padding: 0.5rem 2.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+@media (max-width: 768px) {
+    .profile-card {
+        padding: 1rem 0.5rem;
+    }
+}
+
+.btn-action {
+    min-width: 110px;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: pre-line;
+}

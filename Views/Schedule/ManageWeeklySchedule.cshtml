@@ -1,0 +1,74 @@
+@model DoAnLTW.ViewModels.ManageWeeklyScheduleViewModel
+@using DoAnLTW.Models
+@{
+    ViewData["Title"] = "Quản lý Lịch làm việc Tuần";
+}
+
+<h2>@ViewData["Title"] - Bác sĩ @Model.DoctorName</h2>
+<hr />
+
+<form asp-action="ManageWeeklySchedule" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="DoctorId" />
+    <input type="hidden" asp-for="DoctorName" />
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Thứ</th>
+                <th class="text-center">Làm việc?</th>
+                <th>Ca làm việc</th>
+                <th>Ghi chú</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Model.Schedules.Count; i++)
+            {
+                var day = Model.Schedules[i];
+                var dayIndex = (int)day.DayOfWeek;
+                <tr>
+                    <td>
+                        <input type="hidden" asp-for="Schedules[i].Id" />
+                        <input type="hidden" asp-for="Schedules[i].DoctorId" />
+                        <input type="hidden" asp-for="Schedules[i].DayOfWeek" />
+                        <strong>@day.DayOfWeek</strong>
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" asp-for="Schedules[i].IsWorking" class="form-check-input" onchange="toggleInputs(this, @dayIndex)" />
+                    </td>
+                    <td>
+                        <select asp-for="Schedules[i].Shift" asp-items="Html.GetEnumSelectList<ShiftType>()" class="form-control" id="shift-@dayIndex" disabled="@(!day.IsWorking)"></select>
+                    </td>
+                    <td>
+                        <input type="text" asp-for="Schedules[i].Note" class="form-control" id="note-@dayIndex" placeholder="Về sớm, đi trễ..." disabled="@(!day.IsWorking)" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">Quay lại Dashboard</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleInputs(checkbox, dayIndex) {
+            const shiftSelect = document.getElementById('shift-' + dayIndex);
+            const noteInput = document.getElementById('note-' + dayIndex);
+            
+            if (checkbox.checked) {
+                shiftSelect.disabled = false;
+                noteInput.disabled = false;
+            } else {
+                shiftSelect.disabled = true;
+                noteInput.disabled = true;
+                shiftSelect.value = 0; // 0 = ShiftType.None
+                noteInput.value = '';
+            }
+        }
+    </script>
+} 

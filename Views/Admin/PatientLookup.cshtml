@@ -1,0 +1,88 @@
+@model DoAnLTW.ViewModels.PatientLookupViewModel
+@{
+    ViewData["Title"] = "Tra cứu Bệnh nhân";
+}
+
+<div class="container-fluid py-4">
+    <h1 class="display-6 mb-4"><i class="bi bi-search me-3"></i>@ViewData["Title"]</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Tìm kiếm bệnh nhân</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="PatientLookup" method="get" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="patientSearch" class="form-control" placeholder="Nhập tên hoặc email bệnh nhân..." value="@Model.CurrentPatientSearch">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Tìm kiếm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Results != null && Model.Results.Any())
+    {
+        <div class="mt-4">
+            <h4 class="mb-3">Kết quả tìm kiếm</h4>
+            @foreach (var result in Model.Results)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>@result.FullName</h5>
+                        <div>
+                            <span class="badge bg-secondary me-2">@result.Email</span>
+                            <span class="badge bg-info">@result.PhoneNumber</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">Lịch sử các cuộc hẹn</h6>
+                        @if (result.Appointments.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Ngày giờ</th>
+                                            <th>Bác sĩ</th>
+                                            <th>Trạng thái</th>
+                                            <th>Chẩn đoán</th>
+                                            <th>Chi tiết</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var app in result.Appointments)
+                                        {
+                                            <tr>
+                                                <td>@app.AppointmentDate.ToString("g")</td>
+                                                <td>@app.Doctor?.FullName</td>
+                                                <td><span class="badge @(app.Status == AppointmentStatus.Completed ? "bg-success" : (app.Status == AppointmentStatus.Confirmed ? "bg-primary" : "bg-warning text-dark"))">@app.Status</span></td>
+                                                <td>@app.Diagnosis</td>
+                                                <td>
+                                                    <a asp-controller="Appointment" asp-action="Details" asp-route-id="@app.Id" class="btn btn-sm btn-outline-info" title="Xem chi tiết">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-center text-muted">Bệnh nhân này chưa có lịch hẹn nào.</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(Model.CurrentPatientSearch))
+    {
+        <div class="alert alert-warning mt-4 text-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Không tìm thấy bệnh nhân nào với từ khóa "@Model.CurrentPatientSearch".
+        </div>
+    }
+</div> 

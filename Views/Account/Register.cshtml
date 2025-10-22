@@ -1,0 +1,107 @@
+@model DoAnLTW.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<style>
+    .register-container {
+        max-width: 800px;
+        margin: 3% auto;
+    }
+    .card-header-custom {
+        background-color: #28a745;
+        color: white;
+    }
+    .input-group-text {
+        width: 42px;
+        justify-content: center;
+    }
+</style>
+
+<div class="register-container">
+    <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header card-header-custom text-center">
+            <h2 class="my-3"><i class="bi bi-person-plus-fill me-2"></i>@ViewData["Title"] Tài khoản Mới</h2>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Register" method="post" id="registerForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                            <input asp-for="FullName" class="form-control" placeholder="Họ và tên" required />
+                        </div>
+                        <span asp-validation-for="FullName" class="text-danger d-block mb-2"></span>
+                        
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                            <input asp-for="Email" class="form-control" placeholder="Địa chỉ email" required />
+                        </div>
+                         <span asp-validation-for="Email" class="text-danger d-block mb-2"></span>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại" required />
+                        </div>
+                        <span asp-validation-for="PhoneNumber" class="text-danger d-block mb-2"></span>
+
+                         <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                            <input asp-for="Address" class="form-control" placeholder="Địa chỉ" required />
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger d-block mb-2"></span>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-calendar-event-fill"></i></span>
+                            <input asp-for="DateOfBirth" class="form-control" type="text" placeholder="Ngày sinh" onfocus="(this.type='date')" onblur="(this.type='text')" required />
+                        </div>
+                        <span asp-validation-for="DateOfBirth" class="text-danger d-block mb-2"></span>
+
+                        <div class="input-group mb-3">
+                             <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                             <select asp-for="Gender" class="form-select" required>
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="Gender" class="text-danger d-block mb-2"></span>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" required />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger d-block mb-2"></span>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Xác nhận mật khẩu" required />
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger d-block mb-2"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-grid">
+                    <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check-circle-fill me-2"></i>Đăng ký</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-center py-3">
+            <div class="small">Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
